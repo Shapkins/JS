@@ -1,115 +1,66 @@
 'use strict';
 
-const items = [
-  {
-    title: 'Телепорт бытовой VZHIH-101',
-    available: 7,
-    holded: 0
-  },
-  {
-    title: 'Ховерборд Mattel 2016',
-    available: 4,
-    holded: 5
-  },
-  {
-    title: 'Меч световой FORCE (синий луч)',
-    available: 1,
-    holded: 1
-  }
-];
-
 //Задание 1
 
-const itemPrototype = {
-  sell(field, amount = 1) {
-    if (this[field] < amount) {
-      throw `Недостаточно товара для продажи (${this[field]} из ${amount})`
-    }
-    this[field] -= amount;
-    return true;
-  },
-  sellHolded(amount = 1) {
-    return itemPrototype.sell.call(this, 'holded', amount);
-  },
-  sellAvailable(amount = 1) {
-    return itemPrototype.sell.call(this, 'available', amount);
-  }
-};
-
-function sellItem(item = {}, amount = 0, isHolded = false){
-  try {
-    if (isHolded) {
-      itemPrototype.sellHolded.call(item, amount);
-    } else {
-      itemPrototype.sellAvailable.call(item, amount);
-    }
-  } catch (error) {
-    console.log(`Ошибка: ${error}`);
-  }
+function showSpecialPrice() {
+  console.log('Введен секретный код. Все цены уменьшены вдвое!');
 }
 
+const orders = [
+  { price: 21, amount: 4 },
+  { price: 50, amount: '17 штук' },
+  { price: 7, amount: '1,5 килограмма' },
+  { price: 2, amount: ' 2.7 метра ' },
+  { price: 1, amount: 'семь единиц' }
+];
 
-sellItem(items[2], 1);
-console.log(items[2].available); // 0
-console.log(items[2].holded); // 1
+function fixAmount(amount) {
+  if (typeof amount !== 'number') {
+    let result = amount.trim().split(' ')[0].replace(',', '.');
+    return isNaN(parseFloat(result)) ? -1 : result;
+  }
+  return amount;
+}
 
-sellItem(items[1], 4, true);
-console.log(items[1].available); // 4
-console.log(items[1].holded); // 1
-
-const item = { available: 0, holded: 1 };
-sellItem(item, 1, true);
-console.log(item.available); // 0
-console.log(item.holded); // 0
+for (let order of orders) {
+  let result = fixAmount(order.amount);
+  console.log(`Заказ на сумму: ${result * order.price} Q`);
+}
 
 //Задание 2
+let combination = '';
 
-function formatFull() {
-  return `${this.title}:\n\tдоступно ${this.available} шт.\n\tв резерве ${this.holded} шт.`;
-}
-
-function formatLite() {
-  return `${this.title} (${this.available} + ${this.holded})`;
-}
-
-function show(format) {
-  console.log(format());
-}
-
-function showItems(list = [], formatter) {
-  for (let item of list) {
-    show.call(item, formatter.bind(item));
+function handleKey(char) {
+  combination += char.toLowerCase();
+  if (combination.indexOf('r2d2') !== -1) {
+    showSpecialPrice();
   }
 }
 
-showItems(items, formatFull);
-console.log('---');
-showItems(items, formatLite);
-
+var keys = ['2', '4', 'R', '2', 'd', '2'];
+for (let key of keys) {
+  handleKey(key);
+}
 
 //Задание 3
 
-function createButton(title, onclick) {
-  return {
-    title,
-    onclick,
-    click() {
-      this.onclick.call(this);
+const data = [
+  '12,Телепорт бытовой VZHIH-101 ,17,10000',
+  '77, Меч световой FORCE (синий луч), 2,57000'
+];
+
+function parseData(dataName = [], dataContent = [], separator = ',') {
+  let fullData = [];
+  for (let content of dataContent) {
+    content = content.split(separator);
+    let data = {};
+    for (let i = 0; i < dataName.length; i++){
+      data[dataName[i]] = content[i].trim();
     }
-  };
-}
-
-function createBuyButtons(items = []) {
-  let buttons = [];
-  for (let i = 0; i < items.length; i++) {
-    buttons[i] = createButton('Купить', function() { 
-      console.log (items[i].title + ' добавлен в корзину');
-      });
+    fullData.push(data);
   }
-  return buttons;
+  return fullData;
 }
 
-const buttons = createBuyButtons(items);
-buttons[0].click();
-buttons[2].click();
-buttons[1].click();
+let items = parseData(['id', 'name', 'amount', 'price'], data);
+console.log(items);
